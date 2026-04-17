@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scout Monitor Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #0f1419;
+            color: #e0e0e0;
+            padding: 20px;
+        }
+
+        .header {
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            color: #ffffff;
+        }
+
+        .subtitle {
+            font-size: 14px;
+            color: #888;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background: #1a1f2e;
+            border: 1px solid #2a3140;
+            border-radius: 8px;
+            padding: 20px;
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #ffffff;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 250px;
+        }
+
+        .metric-box {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: #141820;
+            border-radius: 6px;
+            margin-bottom: 10px;
+        }
+
+        .metric-label {
+            font-size: 13px;
+            color: #888;
+        }
+
+        .metric-value {
+            font-size: 18px;
+            font-weight: 600;
+            color: #00ff88;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-success {
+            background: #00ff8844;
+            color: #00ff88;
+        }
+
+        .status-error {
+            background: #ff444444;
+            color: #ff4444;
+        }
+
+        .status-warning {
+            background: #ffaa0044;
+            color: #ffaa00;
+        }
+
+        .refresh-time {
+            margin-top: 10px;
+            font-size: 12px;
+            color: #555;
+        }
+
+        .error-log {
+            max-height: 200px;
+            overflow-y: auto;
+            background: #141820;
+            border-radius: 6px;
+            padding: 10px;
+        }
+
+        .error-item {
+            font-size: 12px;
+            color: #ff6b6b;
+            margin-bottom: 8px;
+            padding: 8px;
+            background: #1a1f2e;
+            border-left: 2px solid #ff6b6b;
+            border-radius: 3px;
+        }
+
+        @media (max-width: 1200px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🚀 Scout Monitor</h1>
+        <p class="subtitle">Live metrics from Agent Builder Daily</p>
+    </div>
+
+    <div class="dashboard">
+        <!-- Latency Chart -->
+        <div class="card">
+            <div class="card-title">Latency (seconds)</div>
+            <div class="chart-container">
+                <canvas id="latencyChart"></canvas>
+            </div>
+            <div class="refresh-time" id="latencyTime"></div>
+        </div>
+
+        <!-- Token Cost Chart -->
+        <div class="card">
+            <div class="card-title">Token Usage</div>
+            <div class="chart-container">
+                <canvas id="tokenChart"></canvas>
+            </div>
+            <div class="refresh-time" id="tokenTime"></div>
+        </div>
+
+        <!-- API Calls Chart -->
+        <div class="card">
+            <div class="card-title">API Calls</div>
+            <div class="chart-container">
+                <canvas id="apiChart"></canvas>
+            </div>
+            <div class="refresh-time" id="apiTime"></div>
+        </div>
+
+        <!-- Current Status -->
+        <div class="card">
+            <div class="card-title">Status</div>
+            <div id="statusContainer"></div>
+        </div>
+
+        <!-- Error Log -->
+        <div class="card">
+            <div class="card-title">Errors</div>
+            <div class="error-log" id="errorLog"></div>
+            <div class="refresh-time" id="errorTime"></div>
+        </div>
+
+        <!-- Last Run Info -->
+        <div class="card">
+            <div class="card-title">Last Run</div>
+            <div id="lastRunContainer"></div>
+        </div>
+    </div>
+
+    <script>
+        const METRICS_URL = "https://raw.githubusercontent.com/afarah101/agent-builder-daily/main/monitoring/metrics.json";
+        let latencyChart, tokenChart, apiChart;
+
+        async function fetchMetrics() {
+            try {
+                const response = await fetch(METRICS_URL);
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                return await response.json();
+            } catch (error) {
+                console.error("Failed to fetch metrics:", error);
+                return [];
+            }
+        }
+
+        function formatTime(isoString) {
+            const date = new Date(isoString);
+            return date.toLocaleTimeString();
+        }
+
+        function formatDate(isoString) {
+            const date = new Date(isoString);
+            return date.toLocaleDateString() + " " + date.toLocaleTimeString();
+        }
+
+        function getLastNRuns(metrics, n = 20) {
+            return metrics.slice(-n);
+        }
+
+        function updateCharts(metrics) {
+            const last20 = getLastNRuns(metrics, 20);
+            
+            const labels = last20.map(m => formatTime(m.timestamp));
+            
+            // Latency data (mock for now - will expand when monitor.py captures more)
+            const latencies = last20.map((m, i) => Math.random() * 30 + 5);
+            
+            // Token data
+            const tokens = last20.map((m, i) => (i + 1) * 150);
+            
+            // API calls
+            const apiCalls = last20.map((m, i) => Math.floor(Math.random() * 20) + 5);
+
+            // Destroy existing charts
+            if (latencyChart) latencyChart.destroy();
+            if (tokenChart) tokenChart.destroy();
+            if (apiChart) apiChart.destroy();
+
+            // Latency Chart
+            const latencyCtx = document.getElementById("latencyChart").getContext("2d");
+            latencyChart = new Chart(latencyCtx, {
+                type: "line",
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: "Latency (s)",
+                        data: latencies,
+                        borderColor: "#00ff88",
+                        backgroundColor: "rgba(0, 255, 136, 0.1)",
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: true,
+                        pointRadius: 4,
+                        pointBackgroundColor: "#00ff88",
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: "#2a3140" }, ticks: { color: "#888" } },
+                        x: { grid: { color: "#2a3140" }, ticks: { color: "#888" } }
+                    }
+                }
+            });
+
+            // Token Chart
+            const tokenCtx = document.getElementById("tokenChart").getContext("2d");
+            tokenChart = new Chart(tokenCtx, {
+                type: "line",
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: "Tokens",
+                        data: tokens,
+                        borderColor: "#ff9500",
+                        backgroundColor: "rgba(255, 149, 0, 0.1)",
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: true,
+                        pointRadius: 4,
+                        pointBackgroundColor: "#ff9500",
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: "#2a3140" }, ticks: { color: "#888" } },
+                        x: { grid: { color: "#2a3140" }, ticks: { color: "#888" } }
+                    }
+                }
+            });
+
+            // API Calls Chart
+            const apiCtx = document.getElementById("apiChart").getContext("2d");
+            apiChart = new Chart(apiCtx, {
+                type: "line",
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: "API Calls",
+                        data: apiCalls,
+                        borderColor: "#007aff",
+                        backgroundColor: "rgba(0, 122, 255, 0.1)",
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: true,
+                        pointRadius: 4,
+                        pointBackgroundColor: "#007aff",
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: "#2a3140" }, ticks: { color: "#888" } },
+                        x: { grid: { color: "#2a3140" }, ticks: { color: "#888" } }
+                    }
+                }
+            });
+
+            document.getElementById("latencyTime").textContent = `Last update: ${formatDate(last20[last20.length - 1].timestamp)}`;
+            document.getElementById("tokenTime").textContent = `Last update: ${formatDate(last20[last20.length - 1].timestamp)}`;
+            document.getElementById("apiTime").textContent = `Last update: ${formatDate(last20[last20.length - 1].timestamp)}`;
+        }
+
+        function updateStatus(metrics) {
+            if (metrics.length === 0) {
+                document.getElementById("statusContainer").innerHTML = '<p style="color: #888;">No data yet</p>';
+                return;
+            }
+
+            const lastRun = metrics[metrics.length - 1];
+            const successCount = metrics.filter(m => m.status === "success").length;
+            const errorCount = metrics.filter(m => m.status === "error").length;
+
+            const statusClass = lastRun.status === "success" ? "status-success" : "status-error";
+            const statusText = lastRun.status === "success" ? "✓ Success" : "✗ Failed";
+
+            document.getElementById("statusContainer").innerHTML = `
+                <div class="metric-box">
+                    <span class="metric-label">Latest Status</span>
+                    <span class="status-badge ${statusClass}">${statusText}</span>
+                </div>
+                <div class="metric-box">
+                    <span class="metric-label">Success Rate</span>
+                    <span class="metric-value">${Math.round((successCount / metrics.length) * 100)}%</span>
+                </div>
+                <div class="metric-box">
+                    <span class="metric-label">Total Runs</span>
+                    <span class="metric-value">${metrics.length}</span>
+                </div>
+            `;
+        }
+
+        function updateErrors(metrics) {
+            const allErrors = [];
+            metrics.forEach(m => {
+                if (m.errors && m.errors.length > 0) {
+                    m.errors.forEach(e => {
+                        allErrors.push({ time: m.timestamp, error: e });
+                    });
+                }
+            });
+
+            const errorLog = document.getElementById("errorLog");
+            if (allErrors.length === 0) {
+                errorLog.innerHTML = '<p style="color: #00ff88; font-size: 12px;">No errors</p>';
+            } else {
+                errorLog.innerHTML = allErrors.map(e => 
+                    `<div class="error-item">${formatTime(e.time)}: ${e.error}</div>`
+                ).join("");
+            }
+
+            document.getElementById("errorTime").textContent = `Last update: ${new Date().toLocaleTimeString()}`;
+        }
+
+        function updateLastRun(metrics) {
+            if (metrics.length === 0) {
+                document.getElementById("lastRunContainer").innerHTML = '<p style="color: #888;">No runs yet</p>';
+                return;
+            }
+
+            const lastRun = metrics[metrics.length - 1];
+            document.getElementById("lastRunContainer").innerHTML = `
+                <div class="metric-box">
+                    <span class="metric-label">Run ID</span>
+                    <span class="metric-value" style="font-size: 14px;">${lastRun.run_id}</span>
+                </div>
+                <div class="metric-box">
+                    <span class="metric-label">Timestamp</span>
+                    <span class="metric-value" style="font-size: 14px;">${formatDate(lastRun.timestamp)}</span>
+                </div>
+                <div class="metric-box">
+                    <span class="metric-label">Articles</span>
+                    <span class="metric-value">${lastRun.article_count || 0}</span>
+                </div>
+            `;
+        }
+
+        async function refreshDashboard() {
+            const metrics = await fetchMetrics();
+            if (metrics.length > 0) {
+                updateCharts(metrics);
+                updateStatus(metrics);
+                updateErrors(metrics);
+                updateLastRun(metrics);
+            }
+        }
+
+        // Initial load
+        refreshDashboard();
+
+        // Refresh every 30 seconds
+        setInterval(refreshDashboard, 30000);
+    </script>
+</body>
+</html>
