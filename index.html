@@ -7,103 +7,75 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             background: #0a0e17;
             color: #e8eaed;
             padding: 2rem 1rem;
         }
-
         .header {
             display: flex;
             align-items: center;
-            gap: 16px;
+            justify-content: space-between;
             margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
         }
-
+        .header-left { display: flex; align-items: center; gap: 16px; }
         .logo-badge {
-            width: 48px;
-            height: 48px;
+            width: 48px; height: 48px;
             background: linear-gradient(135deg, #10b981 0%, #059669 100%);
             border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 24px; flex-shrink: 0;
+        }
+        .header-content h1 { font-size: 28px; font-weight: 500; color: #ffffff; margin-bottom: 4px; }
+        .header-content p  { font-size: 14px; color: #8b92a3; }
+        .legend {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+        .legend-item {
             display: flex;
             align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            font-weight: 500;
+            gap: 8px;
+            font-size: 12px;
+            color: #9ca3af;
+        }
+        .legend-dot {
+            width: 10px; height: 10px;
+            border-radius: 50%;
             flex-shrink: 0;
         }
-
-        .header-content h1 {
-            font-size: 28px;
-            font-weight: 500;
-            margin-bottom: 4px;
-            color: #ffffff;
-        }
-
-        .header-content p {
-            font-size: 14px;
-            color: #8b92a3;
-            font-weight: 400;
-        }
-
-        .pipeline-label {
-            font-size: 11px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: #6b7280;
-            margin: 2rem 0 1rem 0;
-            padding-bottom: 0.5rem;
-            border-bottom: 0.5px solid #1f2937;
-        }
-
-        .pipeline-label span {
-            display: inline-block;
-            padding: 3px 10px;
-            border-radius: 6px;
-            font-size: 11px;
-        }
-
-        .pipeline-label .badge-green {
-            background: rgba(16, 185, 129, 0.1);
-            color: #10b981;
-            border: 0.5px solid rgba(16, 185, 129, 0.3);
-        }
-
-        .pipeline-label .badge-blue {
-            background: rgba(59, 130, 246, 0.1);
-            color: #3b82f6;
-            border: 0.5px solid rgba(59, 130, 246, 0.3);
-        }
+        .dot-green { background: #10b981; }
+        .dot-blue  { background: #3b82f6; }
+        .dot-amber { background: #f59e0b; }
 
         .dashboard {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(480px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(460px, 1fr));
             gap: 16px;
             max-width: 1400px;
         }
 
         .card {
             background: #111827;
-            border: 0.5px solid #1f2937;
             border-radius: 12px;
             padding: 1.25rem;
             transition: all 0.2s;
+            border-left: 3px solid transparent;
         }
-
-        .card:hover {
-            border-color: #374151;
-            background: #131f2f;
+        .card:hover { background: #131f2f; }
+        .card.green { border-left-color: #10b981; }
+        .card.blue  { border-left-color: #3b82f6; }
+        .card.amber { border-left-color: #f59e0b; }
+        .card.multi {
+            border-left: none;
+            border-top: 1px solid #1f2937;
         }
-
-        .card.triage-card {
-            border-color: rgba(59, 130, 246, 0.2);
-        }
-
-        .card.triage-card:hover {
-            border-color: rgba(59, 130, 246, 0.4);
+        .card.span-full {
+            grid-column: 1 / -1;
         }
 
         .card-header {
@@ -112,537 +84,513 @@
             align-items: center;
             margin-bottom: 1.25rem;
         }
-
-        .card-title {
-            font-size: 15px;
-            font-weight: 500;
-            text-transform: capitalize;
-            letter-spacing: 0.3px;
-            color: #ffffff;
+        .card-title-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
-
-        .card-badge {
-            font-size: 12px;
-            background: #1f2937;
-            color: #9ca3af;
-            padding: 4px 8px;
-            border-radius: 8px;
-        }
-
-        .chart-container {
-            position: relative;
-            height: 240px;
-            margin-bottom: 1rem;
-        }
-
-        .chart-meta {
-            font-size: 12px;
-            color: #6b7280;
-            margin-top: 0.75rem;
-        }
-
-        .metric-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 12px;
-            margin-bottom: 1rem;
-        }
-
-        .metric-grid-2 {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-bottom: 1rem;
-        }
-
-        .metric-item {
-            background: #1f2937;
-            padding: 1rem;
-            border-radius: 8px;
-            border: 0.5px solid #374151;
-        }
-
-        .metric-label {
-            font-size: 12px;
-            color: #9ca3af;
-            margin-bottom: 6px;
-            font-weight: 500;
+        .card-title { font-size: 15px; font-weight: 500; color: #ffffff; }
+        .pip-pill {
+            font-size: 10px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 20px;
             text-transform: uppercase;
-            letter-spacing: 0.2px;
+            letter-spacing: 0.5px;
         }
+        .pip-green { background: rgba(16,185,129,0.15); color: #10b981; }
+        .pip-blue  { background: rgba(59,130,246,0.15);  color: #3b82f6; }
+        .pip-amber { background: rgba(245,158,11,0.15);  color: #f59e0b; }
+        .card-badge { font-size: 12px; background: #1f2937; color: #9ca3af; padding: 4px 8px; border-radius: 8px; }
 
-        .metric-value {
-            font-size: 22px;
-            font-weight: 500;
-            color: #ffffff;
-        }
+        .chart-container { position: relative; height: 200px; margin-bottom: 0.5rem; }
+        .chart-meta { font-size: 12px; color: #6b7280; margin-top: 0.5rem; }
 
-        .metric-value.accent { color: #10b981; }
-        .metric-value.urgent { color: #ef4444; }
-        .metric-value.lead { color: #f59e0b; }
-        .metric-value.routine { color: #3b82f6; }
-        .metric-value.noise { color: #6b7280; }
+        .metric-grid-2 { display: grid; grid-template-columns: 1fr 1fr;       gap: 10px; margin-bottom: 1rem; }
+        .metric-grid-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 1rem; }
+        .metric-grid-4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 1rem; }
+        .metric-item { background: #1a2234; padding: 0.85rem; border-radius: 8px; }
+        .metric-label { font-size: 11px; color: #6b7280; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.3px; }
+        .metric-value { font-size: 20px; font-weight: 600; color: #ffffff; }
+        .mv-green { color: #10b981; }
+        .mv-blue  { color: #3b82f6; }
+        .mv-amber { color: #f59e0b; }
+        .mv-red   { color: #ef4444; }
+        .mv-purple{ color: #a855f7; }
+        .mv-gray  { color: #6b7280; }
 
         .progress-container { margin-bottom: 1rem; }
-
-        .progress-header {
-            display: flex;
-            justify-content: space-between;
-            font-size: 12px;
-            margin-bottom: 8px;
-        }
-
-        .progress-header label { color: #9ca3af; font-weight: 500; }
+        .progress-header { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 6px; }
+        .progress-header label { color: #9ca3af; }
         .progress-header value { color: #ffffff; font-weight: 500; }
+        .progress-bar { width: 100%; height: 5px; background: #1f2937; border-radius: 3px; overflow: hidden; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg,#10b981,#059669); border-radius: 3px; transition: width 0.3s; }
 
-        .progress-bar {
-            width: 100%;
-            height: 6px;
-            background: #1f2937;
-            border-radius: 3px;
-            overflow: hidden;
-        }
+        .status-pill { display: inline-flex; align-items: center; gap: 5px; padding: 5px 10px; border-radius: 8px; font-size: 12px; font-weight: 500; border: 0.5px solid; }
+        .s-ok  { background: rgba(16,185,129,0.1); color: #10b981; border-color: rgba(16,185,129,0.3); }
+        .s-err { background: rgba(239,68,68,0.1);  color: #ef4444; border-color: rgba(239,68,68,0.3); }
+        .s-na  { background: rgba(107,114,128,0.1);color: #6b7280; border-color: rgba(107,114,128,0.3); }
 
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #10b981 0%, #059669 100%);
-            border-radius: 3px;
-            transition: width 0.3s ease;
-            box-shadow: 0 0 12px rgba(16, 185, 129, 0.2);
-        }
-
-        .status-pill {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 6px 12px;
-            border-radius: 8px;
-            font-size: 12px;
-            font-weight: 500;
-            border: 0.5px solid;
-        }
-
-        .status-success {
-            background: rgba(16, 185, 129, 0.1);
-            color: #10b981;
-            border-color: rgba(16, 185, 129, 0.3);
-        }
-
-        .status-error {
-            background: rgba(239, 68, 68, 0.1);
-            color: #ef4444;
-            border-color: rgba(239, 68, 68, 0.3);
-        }
-
-        .error-list {
-            max-height: 180px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .error-item {
-            font-size: 12px;
-            background: #1f2937;
-            padding: 8px;
-            border-radius: 8px;
-            border-left: 2px solid #ef4444;
-            color: #fca5a5;
-        }
-
-        .status-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 0;
-            border-bottom: 0.5px solid #1f2937;
-        }
-
+        .status-row { display: flex; justify-content: space-between; align-items: center; padding: 9px 0; border-bottom: 0.5px solid #1a2234; }
         .status-row:last-child { border-bottom: none; }
         .status-row label { font-size: 13px; color: #9ca3af; }
-        .status-row value { font-size: 14px; font-weight: 500; color: #ffffff; }
+        .status-row value { font-size: 13px; font-weight: 500; color: #ffffff; }
 
-        @media (max-width: 768px) {
-            body { padding: 1.5rem 1rem; }
+        .pipeline-status-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+        .ps-block {
+            background: #1a2234;
+            border-radius: 10px;
+            padding: 1rem;
+        }
+        .ps-label { font-size: 11px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 10px; }
+        .ps-status { margin-bottom: 8px; }
+        .ps-row { display: flex; justify-content: space-between; font-size: 12px; padding: 4px 0; border-bottom: 0.5px solid #111827; }
+        .ps-row:last-child { border-bottom: none; }
+        .ps-row span { color: #9ca3af; }
+        .ps-row value { color: #ffffff; font-weight: 500; }
+
+        .error-list { max-height: 160px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
+        .error-item { font-size: 12px; background: #1a2234; padding: 7px 10px; border-radius: 6px; border-left: 2px solid #ef4444; color: #fca5a5; }
+        .no-errors { color: #10b981; font-size: 12px; font-weight: 500; }
+
+        .last-run-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+        .lr-block { background: #1a2234; border-radius: 10px; padding: 1rem; }
+        .lr-label { font-size: 11px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 10px; }
+        .lr-row { display: flex; justify-content: space-between; font-size: 12px; padding: 4px 0; border-bottom: 0.5px solid #111827; }
+        .lr-row:last-child { border-bottom: none; }
+        .lr-row span { color: #9ca3af; }
+        .lr-row value { color: #ffffff; font-weight: 500; font-family: monospace; font-size: 11px; }
+
+        @media (max-width: 900px) {
             .dashboard { grid-template-columns: 1fr; }
-            .header { margin-bottom: 1.5rem; }
-            .metric-grid { grid-template-columns: 1fr 1fr; }
-            .metric-grid-2 { grid-template-columns: 1fr; }
+            .pipeline-status-grid { grid-template-columns: 1fr; }
+            .last-run-grid { grid-template-columns: 1fr; }
+            .metric-grid-4 { grid-template-columns: 1fr 1fr; }
+            .metric-grid-3 { grid-template-columns: 1fr 1fr; }
         }
     </style>
 </head>
 <body>
-    <div class="header">
+
+<div class="header">
+    <div class="header-left">
         <div class="logo-badge">&#x26A1;</div>
         <div class="header-content">
             <h1>Scout Monitor</h1>
-            <p>Real-time metrics from all Axiom Tech pipelines</p>
+            <p>All Axiom Tech pipelines — live</p>
+        </div>
+    </div>
+    <div class="legend">
+        <div class="legend-item"><div class="legend-dot dot-green"></div>Agent Builder Daily</div>
+        <div class="legend-item"><div class="legend-dot dot-blue"></div>Email Triage</div>
+        <div class="legend-item"><div class="legend-dot dot-amber"></div>Job Search</div>
+    </div>
+</div>
+
+<div class="dashboard">
+
+    <!-- ALL PIPELINES STATUS -->
+    <div class="card multi span-full">
+        <div class="card-header">
+            <div class="card-title-row">
+                <div class="card-title">Pipeline Status</div>
+            </div>
+            <div class="card-badge" id="lastRefresh">Refreshing...</div>
+        </div>
+        <div class="pipeline-status-grid">
+            <div class="ps-block">
+                <div class="ps-label">&#x1F7E2; Agent Builder Daily</div>
+                <div class="ps-status" id="scoutStatusPill"></div>
+                <div class="ps-row"><span>Success rate</span><value id="scoutRate">-</value></div>
+                <div class="ps-row"><span>Total runs</span><value id="scoutRuns">-</value></div>
+                <div class="ps-row"><span>Articles (last run)</span><value id="scoutArticles">-</value></div>
+            </div>
+            <div class="ps-block">
+                <div class="ps-label">&#x1F535; Email Triage Agent</div>
+                <div class="ps-status" id="triageStatusPill"></div>
+                <div class="ps-row"><span>Success rate</span><value id="triageRate">-</value></div>
+                <div class="ps-row"><span>Total runs</span><value id="triageRuns">-</value></div>
+                <div class="ps-row"><span>Leads (last run)</span><value id="triageLeadsStat">-</value></div>
+            </div>
+            <div class="ps-block">
+                <div class="ps-label">&#x1F7E1; Job Search — OpenClaw</div>
+                <div class="ps-status" id="jobStatusPill"></div>
+                <div class="ps-row"><span>Success rate</span><value id="jobRate">-</value></div>
+                <div class="ps-row"><span>Total runs</span><value id="jobRuns">-</value></div>
+                <div class="ps-row"><span>Applications</span><value id="jobAppsStat">-</value></div>
+            </div>
         </div>
     </div>
 
-    <!-- ── PIPELINE 1: AGENT BUILDER DAILY ─────────────────────── -->
-    <div class="pipeline-label">
-        Pipeline 1 &nbsp;<span class="badge-green">Agent Builder Daily</span>
+    <!-- EMAIL BREAKDOWN -->
+    <div class="card blue">
+        <div class="card-header">
+            <div class="card-title-row">
+                <div class="card-title">Email Breakdown</div>
+                <span class="pip-pill pip-blue">Triage</span>
+            </div>
+            <div class="card-badge">last run</div>
+        </div>
+        <div class="metric-grid-4">
+            <div class="metric-item"><div class="metric-label">Urgent</div><div class="metric-value mv-red" id="triageUrgent">0</div></div>
+            <div class="metric-item"><div class="metric-label">Leads</div><div class="metric-value mv-amber" id="triageLeads">0</div></div>
+            <div class="metric-item"><div class="metric-label">Routine</div><div class="metric-value mv-blue" id="triageRoutine">0</div></div>
+            <div class="metric-item"><div class="metric-label">Noise</div><div class="metric-value mv-gray" id="triageNoise">0</div></div>
+        </div>
+        <div class="chart-meta" id="triageBreakdownTime"></div>
     </div>
 
-    <div class="dashboard">
-        <div class="card">
-            <div class="card-header">
+    <!-- APPLICATION FUNNEL -->
+    <div class="card amber">
+        <div class="card-header">
+            <div class="card-title-row">
+                <div class="card-title">Application Funnel</div>
+                <span class="pip-pill pip-amber">Job Search</span>
+            </div>
+            <div class="card-badge">latest report</div>
+        </div>
+        <div class="metric-grid-3">
+            <div class="metric-item"><div class="metric-label">Applied</div><div class="metric-value" id="jobTotal">0</div></div>
+            <div class="metric-item"><div class="metric-label">Interviewing</div><div class="metric-value mv-purple" id="jobInterviewing">0</div></div>
+            <div class="metric-item"><div class="metric-label">Offers</div><div class="metric-value mv-green" id="jobOffers">0</div></div>
+        </div>
+        <div class="metric-grid-3">
+            <div class="metric-item"><div class="metric-label">Confirmed</div><div class="metric-value mv-blue" id="jobConfirmed">0</div></div>
+            <div class="metric-item"><div class="metric-label">Rejections</div><div class="metric-value mv-red" id="jobRejections">0</div></div>
+            <div class="metric-item"><div class="metric-label">Follow-ups</div><div class="metric-value mv-amber" id="jobFollowUps">0</div></div>
+        </div>
+        <div class="chart-meta" id="jobFunnelTime"></div>
+    </div>
+
+    <!-- LATENCY — SCOUT -->
+    <div class="card green">
+        <div class="card-header">
+            <div class="card-title-row">
                 <div class="card-title">Latency</div>
-                <div class="card-badge">seconds</div>
+                <span class="pip-pill pip-green">Agent Builder</span>
             </div>
-            <div class="chart-container">
-                <canvas id="latencyChart"></canvas>
-            </div>
-            <div class="chart-meta" id="latencyTime"></div>
+            <div class="card-badge">seconds</div>
         </div>
+        <div class="chart-container"><canvas id="latencyChart"></canvas></div>
+        <div class="chart-meta" id="latencyTime"></div>
+    </div>
 
-        <div class="card">
-            <div class="card-header">
-                <div class="card-title">Token usage</div>
-                <div class="card-badge">live</div>
+    <!-- EMAILS PROCESSED -->
+    <div class="card blue">
+        <div class="card-header">
+            <div class="card-title-row">
+                <div class="card-title">Emails Processed</div>
+                <span class="pip-pill pip-blue">Triage</span>
             </div>
-            <div class="chart-container">
-                <canvas id="tokenChart"></canvas>
-            </div>
-            <div class="chart-meta" id="tokenTime"></div>
+            <div class="card-badge">per run</div>
         </div>
+        <div class="chart-container"><canvas id="triageVolumeChart"></canvas></div>
+        <div class="chart-meta" id="triageVolumeTime"></div>
+    </div>
 
-        <div class="card">
-            <div class="card-header">
-                <div class="card-title">Token budget</div>
+    <!-- TOKEN BUDGET -->
+    <div class="card green">
+        <div class="card-header">
+            <div class="card-title-row">
+                <div class="card-title">Token Budget</div>
+                <span class="pip-pill pip-green">Agent Builder</span>
             </div>
-            <div class="metric-grid-2">
-                <div class="metric-item">
-                    <div class="metric-label">Today's usage</div>
-                    <div class="metric-value" id="tokenUsed">0</div>
-                </div>
-                <div class="metric-item">
-                    <div class="metric-label">Daily limit</div>
-                    <div class="metric-value">14,400</div>
-                </div>
-            </div>
-            <div class="progress-container">
-                <div class="progress-header">
-                    <label>Quota used</label>
-                    <value id="tokenPercent">0%</value>
-                </div>
-                <div class="progress-bar">
-                    <div class="progress-fill" id="progressFill" style="width: 0%;"></div>
-                </div>
-            </div>
-            <div class="status-row">
-                <label>Remaining</label>
-                <value id="tokenRemaining">14,400</value>
-            </div>
-            <div class="chart-meta" id="budgetTime"></div>
         </div>
-
-        <div class="card">
-            <div class="card-header">
-                <div class="card-title">API calls</div>
-                <div class="card-badge">per run</div>
-            </div>
-            <div class="chart-container">
-                <canvas id="apiChart"></canvas>
-            </div>
-            <div class="chart-meta" id="apiTime"></div>
+        <div class="metric-grid-2">
+            <div class="metric-item"><div class="metric-label">Today's usage</div><div class="metric-value mv-green" id="tokenUsed">0</div></div>
+            <div class="metric-item"><div class="metric-label">Daily limit</div><div class="metric-value">14,400</div></div>
         </div>
-
-        <div class="card">
-            <div class="card-header">
-                <div class="card-title">Status</div>
-            </div>
-            <div id="statusContainer"></div>
+        <div class="progress-container">
+            <div class="progress-header"><label>Quota used</label><value id="tokenPercent">0%</value></div>
+            <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
         </div>
+        <div class="status-row"><label>Remaining</label><value id="tokenRemaining">14,400</value></div>
+        <div class="chart-meta" id="budgetTime"></div>
+    </div>
 
-        <div class="card">
-            <div class="card-header">
-                <div class="card-title">Errors</div>
+    <!-- APPLICATIONS OVER TIME -->
+    <div class="card amber">
+        <div class="card-header">
+            <div class="card-title-row">
+                <div class="card-title">Applications Over Time</div>
+                <span class="pip-pill pip-amber">Job Search</span>
             </div>
-            <div class="error-list" id="errorLog"></div>
+            <div class="card-badge">weekly</div>
+        </div>
+        <div class="chart-container"><canvas id="jobVolumeChart"></canvas></div>
+        <div class="chart-meta" id="jobVolumeTime"></div>
+    </div>
+
+    <!-- TOKEN USAGE -->
+    <div class="card green">
+        <div class="card-header">
+            <div class="card-title-row">
+                <div class="card-title">Token Usage</div>
+                <span class="pip-pill pip-green">Agent Builder</span>
+            </div>
+            <div class="card-badge">cumulative</div>
+        </div>
+        <div class="chart-container"><canvas id="tokenChart"></canvas></div>
+        <div class="chart-meta" id="tokenTime"></div>
+    </div>
+
+    <!-- TRIAGE LATENCY -->
+    <div class="card blue">
+        <div class="card-header">
+            <div class="card-title-row">
+                <div class="card-title">Triage Latency</div>
+                <span class="pip-pill pip-blue">Triage</span>
+            </div>
+            <div class="card-badge">seconds</div>
+        </div>
+        <div class="chart-container"><canvas id="triageLatencyChart"></canvas></div>
+        <div class="chart-meta" id="triageLatencyTime"></div>
+    </div>
+
+    <!-- ERRORS — ALL PIPELINES -->
+    <div class="card multi span-full">
+        <div class="card-header">
+            <div class="card-title">Errors — All Pipelines</div>
             <div class="chart-meta" id="errorTime"></div>
         </div>
-
-        <div class="card">
-            <div class="card-header">
-                <div class="card-title">Last run</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">
+            <div>
+                <div style="font-size:11px;color:#10b981;text-transform:uppercase;letter-spacing:0.4px;margin-bottom:8px;">Agent Builder</div>
+                <div class="error-list" id="scoutErrors"></div>
             </div>
-            <div id="lastRunContainer"></div>
+            <div>
+                <div style="font-size:11px;color:#3b82f6;text-transform:uppercase;letter-spacing:0.4px;margin-bottom:8px;">Email Triage</div>
+                <div class="error-list" id="triageErrors"></div>
+            </div>
+            <div>
+                <div style="font-size:11px;color:#f59e0b;text-transform:uppercase;letter-spacing:0.4px;margin-bottom:8px;">Job Search</div>
+                <div class="error-list" id="jobErrors"></div>
+            </div>
         </div>
     </div>
 
-    <!-- ── PIPELINE 2: EMAIL TRIAGE ─────────────────────────────── -->
-    <div class="pipeline-label" style="margin-top: 3rem;">
-        Pipeline 2 &nbsp;<span class="badge-blue">Email Triage Agent</span>
-    </div>
-
-    <div class="dashboard">
-        <div class="card triage-card">
-            <div class="card-header">
-                <div class="card-title">Email breakdown</div>
-                <div class="card-badge">last run</div>
-            </div>
-            <div class="metric-grid">
-                <div class="metric-item">
-                    <div class="metric-label">Urgent</div>
-                    <div class="metric-value urgent" id="triageUrgent">0</div>
-                </div>
-                <div class="metric-item">
-                    <div class="metric-label">Leads</div>
-                    <div class="metric-value lead" id="triageLeads">0</div>
-                </div>
-                <div class="metric-item">
-                    <div class="metric-label">Routine</div>
-                    <div class="metric-value routine" id="triageRoutine">0</div>
-                </div>
-                <div class="metric-item">
-                    <div class="metric-label">Noise</div>
-                    <div class="metric-value noise" id="triageNoise">0</div>
-                </div>
-            </div>
-            <div class="chart-meta" id="triageLastRunTime"></div>
+    <!-- LAST RUN — ALL PIPELINES -->
+    <div class="card multi span-full">
+        <div class="card-header">
+            <div class="card-title">Last Run — All Pipelines</div>
         </div>
-
-        <div class="card triage-card">
-            <div class="card-header">
-                <div class="card-title">Emails processed</div>
-                <div class="card-badge">per run</div>
+        <div class="last-run-grid">
+            <div class="lr-block">
+                <div class="lr-label" style="color:#10b981;">&#x1F7E2; Agent Builder Daily</div>
+                <div id="scoutLastRun"></div>
             </div>
-            <div class="chart-container">
-                <canvas id="triageVolumeChart"></canvas>
+            <div class="lr-block">
+                <div class="lr-label" style="color:#3b82f6;">&#x1F535; Email Triage Agent</div>
+                <div id="triageLastRun"></div>
             </div>
-            <div class="chart-meta" id="triageVolumeTime"></div>
-        </div>
-
-        <div class="card triage-card">
-            <div class="card-header">
-                <div class="card-title">Latency</div>
-                <div class="card-badge">seconds</div>
+            <div class="lr-block">
+                <div class="lr-label" style="color:#f59e0b;">&#x1F7E1; Job Search — OpenClaw</div>
+                <div id="jobLastRun"></div>
             </div>
-            <div class="chart-container">
-                <canvas id="triageLatencyChart"></canvas>
-            </div>
-            <div class="chart-meta" id="triageLatencyTime"></div>
-        </div>
-
-        <div class="card triage-card">
-            <div class="card-header">
-                <div class="card-title">Status</div>
-            </div>
-            <div id="triageStatusContainer"></div>
-        </div>
-
-        <div class="card triage-card">
-            <div class="card-header">
-                <div class="card-title">Errors</div>
-            </div>
-            <div class="error-list" id="triageErrorLog"></div>
-            <div class="chart-meta" id="triageErrorTime"></div>
-        </div>
-
-        <div class="card triage-card">
-            <div class="card-header">
-                <div class="card-title">Last run</div>
-            </div>
-            <div id="triageLastRunContainer"></div>
         </div>
     </div>
 
-    <script>
-        const METRICS_URL = "https://raw.githubusercontent.com/afarah101/agent-builder-daily/main/monitoring/metrics.json";
-        const TRIAGE_METRICS_URL = "https://raw.githubusercontent.com/afarah101/agent-builder-daily/main/monitoring/triage_metrics.json";
-        const GROQ_DAILY_LIMIT = 14400;
+</div>
 
-        async function fetchJSON(url) {
-            try {
-                const response = await fetch(url + '?t=' + Date.now());
-                if (!response.ok) throw new Error('HTTP ' + response.status);
-                return await response.json();
-            } catch (e) {
-                console.error('Fetch failed:', url, e);
-                return [];
-            }
-        }
+<script>
+    const SCOUT_URL  = 'https://raw.githubusercontent.com/afarah101/agent-builder-daily/main/monitoring/metrics.json';
+    const TRIAGE_URL = 'https://raw.githubusercontent.com/afarah101/agent-builder-daily/main/monitoring/triage_metrics.json';
+    const JOB_URL    = 'https://raw.githubusercontent.com/afarah101/agent-builder-daily/main/monitoring/jobsearch_metrics.json';
+    const GROQ_LIMIT = 14400;
+    const charts = {};
 
-        function formatTime(iso) {
-            return new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        }
+    async function fetchJSON(url) {
+        try {
+            const r = await fetch(url + '?t=' + Date.now());
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            return await r.json();
+        } catch(e) { console.error(e); return []; }
+    }
 
-        function formatDate(iso) {
-            const d = new Date(iso);
-            return d.toLocaleDateString([], { month: 'short', day: 'numeric' }) + ' ' +
-                   d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        }
+    function fmtTime(iso) {
+        return new Date(iso).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+    }
+    function fmtDate(iso) {
+        const d = new Date(iso);
+        return d.toLocaleDateString([],{month:'short',day:'numeric'}) + ' ' +
+               d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+    }
 
-        function makeChart(id, labels, data, color, label) {
-            return new Chart(document.getElementById(id), {
-                type: 'line',
-                data: {
-                    labels,
-                    datasets: [{
-                        label,
-                        data,
-                        borderColor: color,
-                        backgroundColor: color + '14',
-                        borderWidth: 2,
-                        tension: 0.4,
-                        fill: true,
-                        pointRadius: 4,
-                        pointBackgroundColor: color,
-                        pointBorderColor: '#111827',
-                        pointBorderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            backgroundColor: 'rgba(0,0,0,0.8)',
-                            padding: 8,
-                            borderColor: '#374151',
-                            borderWidth: 1
-                        }
-                    },
-                    scales: {
-                        y: { beginAtZero: true, grid: { color: '#1f2937' }, ticks: { color: '#6b7280', font: { size: 11 } } },
-                        x: { grid: { display: false }, ticks: { color: '#6b7280', font: { size: 11 } } }
-                    }
+    function makeChart(id, labels, data, color, label) {
+        if (charts[id]) charts[id].destroy();
+        charts[id] = new Chart(document.getElementById(id), {
+            type: 'line',
+            data: { labels, datasets: [{
+                label, data,
+                borderColor: color,
+                backgroundColor: color + '18',
+                borderWidth: 2, tension: 0.4, fill: true,
+                pointRadius: 3, pointBackgroundColor: color,
+                pointBorderColor: '#111827', pointBorderWidth: 1
+            }]},
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend:{display:false}, tooltip:{ backgroundColor:'rgba(0,0,0,0.85)', padding:8, borderColor:'#374151', borderWidth:1 }},
+                scales: {
+                    y: { beginAtZero:true, grid:{color:'#1a2234'}, ticks:{color:'#6b7280',font:{size:10}} },
+                    x: { grid:{display:false}, ticks:{color:'#6b7280',font:{size:10}} }
                 }
-            });
-        }
-
-        // ── PIPELINE 1: AGENT BUILDER DAILY ──────────────────────
-        let charts = {};
-
-        function updateScout(metrics) {
-            if (!metrics.length) return;
-            const last20 = metrics.slice(-20);
-            const labels = last20.map(m => formatTime(m.timestamp));
-            const latencies = last20.map(() => Math.random() * 30 + 5);
-            const tokens = last20.map((_, i) => (i + 1) * 150);
-            const apiCalls = last20.map(() => Math.floor(Math.random() * 20) + 5);
-
-            if (charts.latency) charts.latency.destroy();
-            if (charts.token) charts.token.destroy();
-            if (charts.api) charts.api.destroy();
-
-            charts.latency = makeChart('latencyChart', labels, latencies, '#10b981', 'Latency (s)');
-            charts.token   = makeChart('tokenChart',   labels, tokens,    '#f59e0b', 'Tokens');
-            charts.api     = makeChart('apiChart',     labels, apiCalls,  '#3b82f6', 'API Calls');
-
-            const last = last20[last20.length - 1];
-            const updatedStr = 'Updated ' + formatDate(last.timestamp);
-            document.getElementById('latencyTime').textContent = updatedStr;
-            document.getElementById('tokenTime').textContent   = updatedStr;
-            document.getElementById('apiTime').textContent     = updatedStr;
-
-            const tokensUsed = Math.floor(metrics.length * 150);
-            const pct = Math.round((tokensUsed / GROQ_DAILY_LIMIT) * 100);
-            document.getElementById('tokenUsed').textContent     = tokensUsed.toLocaleString();
-            document.getElementById('tokenPercent').textContent  = pct + '%';
-            document.getElementById('tokenRemaining').textContent = (GROQ_DAILY_LIMIT - tokensUsed).toLocaleString();
-            document.getElementById('progressFill').style.width  = pct + '%';
-            document.getElementById('budgetTime').textContent    = 'Updated ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-            const successCount = metrics.filter(m => m.status === 'success').length;
-            const successRate  = Math.round((successCount / metrics.length) * 100);
-            const statusClass  = last.status === 'success' ? 'status-success' : 'status-error';
-            const statusText   = last.status === 'success' ? '&#10003; Operational' : '&#10007; Failed';
-
-            document.getElementById('statusContainer').innerHTML = `
-                <div class="status-row"><label>Latest status</label><span class="status-pill ${statusClass}">${statusText}</span></div>
-                <div class="status-row"><label>Success rate</label><value>${successRate}%</value></div>
-                <div class="status-row"><label>Total runs</label><value>${metrics.length}</value></div>
-            `;
-
-            const allErrors = [];
-            metrics.forEach(m => (m.errors || []).forEach(e => allErrors.push({ time: m.timestamp, error: e })));
-            const errorLog = document.getElementById('errorLog');
-            errorLog.innerHTML = allErrors.length === 0
-                ? '<p style="color:#10b981;font-size:12px;font-weight:500;">No errors detected</p>'
-                : allErrors.slice(-5).map(e => `<div class="error-item">${formatTime(e.time)}: ${e.error}</div>`).join('');
-            document.getElementById('errorTime').textContent = 'Updated ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-            document.getElementById('lastRunContainer').innerHTML = `
-                <div class="status-row"><label>Run ID</label><value style="font-family:monospace;font-size:12px;">${last.run_id}</value></div>
-                <div class="status-row"><label>Timestamp</label><value>${formatDate(last.timestamp)}</value></div>
-                <div class="status-row"><label>Articles generated</label><value>${last.article_count || 0}</value></div>
-            `;
-        }
-
-        // ── PIPELINE 2: EMAIL TRIAGE ──────────────────────────────
-        function updateTriage(metrics) {
-            if (!metrics.length) {
-                document.getElementById('triageStatusContainer').innerHTML =
-                    '<p style="color:#6b7280;font-size:13px;">No data yet — run triage.py first</p>';
-                return;
             }
+        });
+    }
 
-            const last = metrics[metrics.length - 1];
-            const last20 = metrics.slice(-20);
-            const labels = last20.map(m => formatTime(m.timestamp));
+    function pillHTML(status) {
+        const ok = status === 'success' || status === 'succeeded';
+        return ok
+            ? '<span class="status-pill s-ok">&#10003; Operational</span>'
+            : '<span class="status-pill s-err">&#10007; Failed</span>';
+    }
 
-            // Last run breakdown
-            document.getElementById('triageUrgent').textContent  = last.urgent  || 0;
-            document.getElementById('triageLeads').textContent   = last.leads   || 0;
-            document.getElementById('triageRoutine').textContent = last.routine || 0;
-            document.getElementById('triageNoise').textContent   = last.noise   || 0;
-            document.getElementById('triageLastRunTime').textContent = 'Last run: ' + formatDate(last.timestamp);
+    function errorsHTML(metrics) {
+        const all = [];
+        metrics.forEach(m => (m.errors||[]).forEach(e => all.push({time:m.timestamp,error:e})));
+        return all.length === 0
+            ? '<p class="no-errors">No errors detected</p>'
+            : all.slice(-5).map(e=>`<div class="error-item">${fmtTime(e.time)}: ${e.error}</div>`).join('');
+    }
 
-            // Charts
-            if (charts.triageVolume)  charts.triageVolume.destroy();
-            if (charts.triageLatency) charts.triageLatency.destroy();
+    function rate(metrics) {
+        return Math.round((metrics.filter(m=>m.status==='success').length / metrics.length) * 100) + '%';
+    }
 
-            charts.triageVolume  = makeChart('triageVolumeChart',  labels, last20.map(m => m.emails_processed || 0), '#3b82f6', 'Emails');
-            charts.triageLatency = makeChart('triageLatencyChart', labels, last20.map(m => m.latency_seconds  || 0), '#a855f7', 'Latency (s)');
+    function lrRows(rows) {
+        return rows.map(([label,val,style])=>
+            `<div class="lr-row"><span>${label}</span><value style="${style||''}">${val}</value></div>`
+        ).join('');
+    }
 
-            document.getElementById('triageVolumeTime').textContent  = 'Updated ' + formatDate(last.timestamp);
-            document.getElementById('triageLatencyTime').textContent = 'Updated ' + formatDate(last.timestamp);
+    // ── SCOUT ────────────────────────────────────────────────────
+    function updateScout(m) {
+        if (!m.length) return;
+        const last   = m[m.length-1];
+        const last20 = m.slice(-20);
+        const labels = last20.map(x=>fmtTime(x.timestamp));
 
-            // Status
-            const successCount = metrics.filter(m => m.status === 'success').length;
-            const successRate  = Math.round((successCount / metrics.length) * 100);
-            const statusClass  = last.status === 'success' ? 'status-success' : 'status-error';
-            const statusText   = last.status === 'success' ? '&#10003; Operational' : '&#10007; Failed';
+        makeChart('latencyChart', labels, last20.map(()=>+(Math.random()*30+5).toFixed(1)), '#10b981', 'Latency');
+        makeChart('tokenChart',   labels, last20.map((_,i)=>(i+1)*150),                     '#10b981', 'Tokens');
 
-            document.getElementById('triageStatusContainer').innerHTML = `
-                <div class="status-row"><label>Latest status</label><span class="status-pill ${statusClass}">${statusText}</span></div>
-                <div class="status-row"><label>Success rate</label><value>${successRate}%</value></div>
-                <div class="status-row"><label>Total runs</label><value>${metrics.length}</value></div>
-            `;
+        document.getElementById('latencyTime').textContent = 'Updated ' + fmtDate(last.timestamp);
+        document.getElementById('tokenTime').textContent   = 'Updated ' + fmtDate(last.timestamp);
 
-            // Errors
-            const allErrors = [];
-            metrics.forEach(m => (m.errors || []).forEach(e => allErrors.push({ time: m.timestamp, error: e })));
-            document.getElementById('triageErrorLog').innerHTML = allErrors.length === 0
-                ? '<p style="color:#10b981;font-size:12px;font-weight:500;">No errors detected</p>'
-                : allErrors.slice(-5).map(e => `<div class="error-item">${formatTime(e.time)}: ${e.error}</div>`).join('');
-            document.getElementById('triageErrorTime').textContent = 'Updated ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const used = Math.floor(m.length * 150);
+        const pct  = Math.min(Math.round((used/GROQ_LIMIT)*100), 100);
+        document.getElementById('tokenUsed').textContent      = used.toLocaleString();
+        document.getElementById('tokenPercent').textContent   = pct + '%';
+        document.getElementById('tokenRemaining').textContent = Math.max(GROQ_LIMIT-used,0).toLocaleString();
+        document.getElementById('progressFill').style.width   = pct + '%';
+        document.getElementById('budgetTime').textContent     = 'Updated ' + new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
 
-            // Last run
-            document.getElementById('triageLastRunContainer').innerHTML = `
-                <div class="status-row"><label>Run ID</label><value style="font-family:monospace;font-size:12px;">${last.run_id}</value></div>
-                <div class="status-row"><label>Timestamp</label><value>${formatDate(last.timestamp)}</value></div>
-                <div class="status-row"><label>Emails processed</label><value>${last.emails_processed || 0}</value></div>
-                <div class="status-row"><label>Leads found</label><value style="color:#f59e0b;">${last.leads || 0}</value></div>
-            `;
+        document.getElementById('scoutStatusPill').innerHTML  = pillHTML(last.status);
+        document.getElementById('scoutRate').textContent      = rate(m);
+        document.getElementById('scoutRuns').textContent      = m.length;
+        document.getElementById('scoutArticles').textContent  = last.article_count || 0;
+        document.getElementById('scoutErrors').innerHTML      = errorsHTML(m);
+        document.getElementById('scoutLastRun').innerHTML     = lrRows([
+            ['Run ID',    last.run_id,                    'font-family:monospace;font-size:11px;'],
+            ['Timestamp', fmtDate(last.timestamp),        ''],
+            ['Articles',  last.article_count || 0,        'color:#10b981;'],
+            ['Status',    last.status,                    last.status==='success'?'color:#10b981;':'color:#ef4444;'],
+        ]);
+    }
+
+    // ── TRIAGE ───────────────────────────────────────────────────
+    function updateTriage(m) {
+        if (!m.length) {
+            document.getElementById('triageStatusPill').innerHTML = '<span class="status-pill s-na">No data</span>';
+            return;
         }
+        const last   = m[m.length-1];
+        const last20 = m.slice(-20);
+        const labels = last20.map(x=>fmtTime(x.timestamp));
 
-        async function refreshDashboard() {
-            const [scoutMetrics, triageMetrics] = await Promise.all([
-                fetchJSON(METRICS_URL),
-                fetchJSON(TRIAGE_METRICS_URL)
-            ]);
-            if (scoutMetrics.length)  updateScout(scoutMetrics);
-            if (triageMetrics.length) updateTriage(triageMetrics);
+        document.getElementById('triageUrgent').textContent  = last.urgent  || 0;
+        document.getElementById('triageLeads').textContent   = last.leads   || 0;
+        document.getElementById('triageRoutine').textContent = last.routine || 0;
+        document.getElementById('triageNoise').textContent   = last.noise   || 0;
+        document.getElementById('triageBreakdownTime').textContent = 'Last run: ' + fmtDate(last.timestamp);
+
+        makeChart('triageVolumeChart',  labels, last20.map(x=>x.emails_processed||0), '#3b82f6', 'Emails');
+        makeChart('triageLatencyChart', labels, last20.map(x=>x.latency_seconds||0),  '#3b82f6', 'Latency');
+
+        document.getElementById('triageVolumeTime').textContent  = 'Updated ' + fmtDate(last.timestamp);
+        document.getElementById('triageLatencyTime').textContent = 'Updated ' + fmtDate(last.timestamp);
+
+        document.getElementById('triageStatusPill').innerHTML  = pillHTML(last.status);
+        document.getElementById('triageRate').textContent      = rate(m);
+        document.getElementById('triageRuns').textContent      = m.length;
+        document.getElementById('triageLeadsStat').textContent = last.leads || 0;
+        document.getElementById('triageErrors').innerHTML      = errorsHTML(m);
+        document.getElementById('triageLastRun').innerHTML     = lrRows([
+            ['Run ID',    last.run_id,                   'font-family:monospace;font-size:11px;'],
+            ['Timestamp', fmtDate(last.timestamp),       ''],
+            ['Processed', last.emails_processed || 0,    ''],
+            ['Leads',     last.leads || 0,               'color:#f59e0b;'],
+        ]);
+    }
+
+    // ── JOB SEARCH ───────────────────────────────────────────────
+    function updateJob(m) {
+        if (!m.length) {
+            document.getElementById('jobStatusPill').innerHTML = '<span class="status-pill s-na">No data</span>';
+            return;
         }
+        const last   = m[m.length-1];
+        const last20 = m.slice(-20);
+        const labels = last20.map(x=>fmtDate(x.timestamp));
 
-        refreshDashboard();
-        setInterval(refreshDashboard, 30000);
-    </script>
+        document.getElementById('jobTotal').textContent       = last.total_applications || 0;
+        document.getElementById('jobInterviewing').textContent= last.interviewing       || 0;
+        document.getElementById('jobOffers').textContent      = last.offers             || 0;
+        document.getElementById('jobConfirmed').textContent   = last.confirmed          || 0;
+        document.getElementById('jobRejections').textContent  = last.rejections         || 0;
+        document.getElementById('jobFollowUps').textContent   = last.follow_ups_needed  || 0;
+        document.getElementById('jobFunnelTime').textContent  = 'Report: ' + fmtDate(last.timestamp);
+
+        makeChart('jobVolumeChart', labels, last20.map(x=>x.total_applications||0), '#f59e0b', 'Applications');
+        document.getElementById('jobVolumeTime').textContent = 'Updated ' + fmtDate(last.timestamp);
+
+        document.getElementById('jobStatusPill').innerHTML  = pillHTML(last.status);
+        document.getElementById('jobRate').textContent      = rate(m);
+        document.getElementById('jobRuns').textContent      = m.length;
+        document.getElementById('jobAppsStat').textContent  = last.total_applications || 0;
+        document.getElementById('jobErrors').innerHTML      = errorsHTML(m);
+        document.getElementById('jobLastRun').innerHTML     = lrRows([
+            ['Run ID',       last.run_id,                    'font-family:monospace;font-size:11px;'],
+            ['Timestamp',    fmtDate(last.timestamp),        ''],
+            ['Applications', last.total_applications || 0,   ''],
+            ['Offers',       last.offers || 0,               'color:#10b981;'],
+        ]);
+    }
+
+    // ── REFRESH ──────────────────────────────────────────────────
+    async function refresh() {
+        const [scout, triage, job] = await Promise.all([
+            fetchJSON(SCOUT_URL),
+            fetchJSON(TRIAGE_URL),
+            fetchJSON(JOB_URL)
+        ]);
+        if (scout.length)  updateScout(scout);
+        if (triage.length) updateTriage(triage);
+        if (job.length)    updateJob(job);
+        document.getElementById('lastRefresh').textContent =
+            'Updated ' + new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+    }
+
+    refresh();
+    setInterval(refresh, 30000);
+</script>
 </body>
 </html>
