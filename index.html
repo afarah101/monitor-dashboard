@@ -7,7 +7,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             background: #0a0e17;
@@ -48,6 +48,36 @@
             font-weight: 400;
         }
 
+        .pipeline-label {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #6b7280;
+            margin: 2rem 0 1rem 0;
+            padding-bottom: 0.5rem;
+            border-bottom: 0.5px solid #1f2937;
+        }
+
+        .pipeline-label span {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+        }
+
+        .pipeline-label .badge-green {
+            background: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+            border: 0.5px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .pipeline-label .badge-blue {
+            background: rgba(59, 130, 246, 0.1);
+            color: #3b82f6;
+            border: 0.5px solid rgba(59, 130, 246, 0.3);
+        }
+
         .dashboard {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(480px, 1fr));
@@ -66,6 +96,14 @@
         .card:hover {
             border-color: #374151;
             background: #131f2f;
+        }
+
+        .card.triage-card {
+            border-color: rgba(59, 130, 246, 0.2);
+        }
+
+        .card.triage-card:hover {
+            border-color: rgba(59, 130, 246, 0.4);
         }
 
         .card-header {
@@ -105,6 +143,13 @@
 
         .metric-grid {
             display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 1rem;
+        }
+
+        .metric-grid-2 {
+            display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 12px;
             margin-bottom: 1rem;
@@ -132,13 +177,13 @@
             color: #ffffff;
         }
 
-        .metric-value.accent {
-            color: #10b981;
-        }
+        .metric-value.accent { color: #10b981; }
+        .metric-value.urgent { color: #ef4444; }
+        .metric-value.lead { color: #f59e0b; }
+        .metric-value.routine { color: #3b82f6; }
+        .metric-value.noise { color: #6b7280; }
 
-        .progress-container {
-            margin-bottom: 1rem;
-        }
+        .progress-container { margin-bottom: 1rem; }
 
         .progress-header {
             display: flex;
@@ -147,15 +192,8 @@
             margin-bottom: 8px;
         }
 
-        .progress-header label {
-            color: #9ca3af;
-            font-weight: 500;
-        }
-
-        .progress-header value {
-            color: #ffffff;
-            font-weight: 500;
-        }
+        .progress-header label { color: #9ca3af; font-weight: 500; }
+        .progress-header value { color: #ffffff; font-weight: 500; }
 
         .progress-bar {
             width: 100%;
@@ -221,40 +259,34 @@
             border-bottom: 0.5px solid #1f2937;
         }
 
-        .status-row:last-child {
-            border-bottom: none;
-        }
-
-        .status-row label {
-            font-size: 13px;
-            color: #9ca3af;
-        }
-
-        .status-row value {
-            font-size: 14px;
-            font-weight: 500;
-            color: #ffffff;
-        }
+        .status-row:last-child { border-bottom: none; }
+        .status-row label { font-size: 13px; color: #9ca3af; }
+        .status-row value { font-size: 14px; font-weight: 500; color: #ffffff; }
 
         @media (max-width: 768px) {
             body { padding: 1.5rem 1rem; }
             .dashboard { grid-template-columns: 1fr; }
             .header { margin-bottom: 1.5rem; }
-            .metric-grid { grid-template-columns: 1fr; }
+            .metric-grid { grid-template-columns: 1fr 1fr; }
+            .metric-grid-2 { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
     <div class="header">
-        <div class="logo-badge">⚡</div>
+        <div class="logo-badge">&#x26A1;</div>
         <div class="header-content">
             <h1>Scout Monitor</h1>
-            <p>Real-time metrics from Agent Builder Daily</p>
+            <p>Real-time metrics from all Axiom Tech pipelines</p>
         </div>
     </div>
 
+    <!-- ── PIPELINE 1: AGENT BUILDER DAILY ─────────────────────── -->
+    <div class="pipeline-label">
+        Pipeline 1 &nbsp;<span class="badge-green">Agent Builder Daily</span>
+    </div>
+
     <div class="dashboard">
-        <!-- Latency -->
         <div class="card">
             <div class="card-header">
                 <div class="card-title">Latency</div>
@@ -266,7 +298,6 @@
             <div class="chart-meta" id="latencyTime"></div>
         </div>
 
-        <!-- Token Usage -->
         <div class="card">
             <div class="card-header">
                 <div class="card-title">Token usage</div>
@@ -278,15 +309,14 @@
             <div class="chart-meta" id="tokenTime"></div>
         </div>
 
-        <!-- Token Budget -->
         <div class="card">
             <div class="card-header">
                 <div class="card-title">Token budget</div>
             </div>
-            <div class="metric-grid">
+            <div class="metric-grid-2">
                 <div class="metric-item">
                     <div class="metric-label">Today's usage</div>
-                    <div class="metric-value" id="tokenUsed">450</div>
+                    <div class="metric-value" id="tokenUsed">0</div>
                 </div>
                 <div class="metric-item">
                     <div class="metric-label">Daily limit</div>
@@ -296,20 +326,19 @@
             <div class="progress-container">
                 <div class="progress-header">
                     <label>Quota used</label>
-                    <value id="tokenPercent">3.1%</value>
+                    <value id="tokenPercent">0%</value>
                 </div>
                 <div class="progress-bar">
-                    <div class="progress-fill" id="progressFill" style="width: 3.1%;"></div>
+                    <div class="progress-fill" id="progressFill" style="width: 0%;"></div>
                 </div>
             </div>
             <div class="status-row">
                 <label>Remaining</label>
-                <value id="tokenRemaining">13,950</value>
+                <value id="tokenRemaining">14,400</value>
             </div>
             <div class="chart-meta" id="budgetTime"></div>
         </div>
 
-        <!-- API Calls -->
         <div class="card">
             <div class="card-header">
                 <div class="card-title">API calls</div>
@@ -321,7 +350,6 @@
             <div class="chart-meta" id="apiTime"></div>
         </div>
 
-        <!-- Status -->
         <div class="card">
             <div class="card-header">
                 <div class="card-title">Status</div>
@@ -329,7 +357,6 @@
             <div id="statusContainer"></div>
         </div>
 
-        <!-- Errors -->
         <div class="card">
             <div class="card-header">
                 <div class="card-title">Errors</div>
@@ -338,7 +365,6 @@
             <div class="chart-meta" id="errorTime"></div>
         </div>
 
-        <!-- Last Run -->
         <div class="card">
             <div class="card-header">
                 <div class="card-title">Last run</div>
@@ -347,250 +373,272 @@
         </div>
     </div>
 
+    <!-- ── PIPELINE 2: EMAIL TRIAGE ─────────────────────────────── -->
+    <div class="pipeline-label" style="margin-top: 3rem;">
+        Pipeline 2 &nbsp;<span class="badge-blue">Email Triage Agent</span>
+    </div>
+
+    <div class="dashboard">
+        <div class="card triage-card">
+            <div class="card-header">
+                <div class="card-title">Email breakdown</div>
+                <div class="card-badge">last run</div>
+            </div>
+            <div class="metric-grid">
+                <div class="metric-item">
+                    <div class="metric-label">Urgent</div>
+                    <div class="metric-value urgent" id="triageUrgent">0</div>
+                </div>
+                <div class="metric-item">
+                    <div class="metric-label">Leads</div>
+                    <div class="metric-value lead" id="triageLeads">0</div>
+                </div>
+                <div class="metric-item">
+                    <div class="metric-label">Routine</div>
+                    <div class="metric-value routine" id="triageRoutine">0</div>
+                </div>
+                <div class="metric-item">
+                    <div class="metric-label">Noise</div>
+                    <div class="metric-value noise" id="triageNoise">0</div>
+                </div>
+            </div>
+            <div class="chart-meta" id="triageLastRunTime"></div>
+        </div>
+
+        <div class="card triage-card">
+            <div class="card-header">
+                <div class="card-title">Emails processed</div>
+                <div class="card-badge">per run</div>
+            </div>
+            <div class="chart-container">
+                <canvas id="triageVolumeChart"></canvas>
+            </div>
+            <div class="chart-meta" id="triageVolumeTime"></div>
+        </div>
+
+        <div class="card triage-card">
+            <div class="card-header">
+                <div class="card-title">Latency</div>
+                <div class="card-badge">seconds</div>
+            </div>
+            <div class="chart-container">
+                <canvas id="triageLatencyChart"></canvas>
+            </div>
+            <div class="chart-meta" id="triageLatencyTime"></div>
+        </div>
+
+        <div class="card triage-card">
+            <div class="card-header">
+                <div class="card-title">Status</div>
+            </div>
+            <div id="triageStatusContainer"></div>
+        </div>
+
+        <div class="card triage-card">
+            <div class="card-header">
+                <div class="card-title">Errors</div>
+            </div>
+            <div class="error-list" id="triageErrorLog"></div>
+            <div class="chart-meta" id="triageErrorTime"></div>
+        </div>
+
+        <div class="card triage-card">
+            <div class="card-header">
+                <div class="card-title">Last run</div>
+            </div>
+            <div id="triageLastRunContainer"></div>
+        </div>
+    </div>
+
     <script>
         const METRICS_URL = "https://raw.githubusercontent.com/afarah101/agent-builder-daily/main/monitoring/metrics.json";
+        const TRIAGE_METRICS_URL = "https://raw.githubusercontent.com/afarah101/agent-builder-daily/main/monitoring/triage_metrics.json";
         const GROQ_DAILY_LIMIT = 14400;
-        let latencyChart, tokenChart, apiChart;
 
-        async function fetchMetrics() {
+        async function fetchJSON(url) {
             try {
-                const response = await fetch(METRICS_URL);
-                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                const response = await fetch(url + '?t=' + Date.now());
+                if (!response.ok) throw new Error('HTTP ' + response.status);
                 return await response.json();
-            } catch (error) {
-                console.error("Failed to fetch metrics:", error);
+            } catch (e) {
+                console.error('Fetch failed:', url, e);
                 return [];
             }
         }
 
-        function formatTime(isoString) {
-            const date = new Date(isoString);
-            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        function formatTime(iso) {
+            return new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         }
 
-        function formatDate(isoString) {
-            const date = new Date(isoString);
-            return date.toLocaleDateString([], { month: 'short', day: 'numeric' }) + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        function formatDate(iso) {
+            const d = new Date(iso);
+            return d.toLocaleDateString([], { month: 'short', day: 'numeric' }) + ' ' +
+                   d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         }
 
-        function getLastNRuns(metrics, n = 20) {
-            return metrics.slice(-n);
-        }
-
-        function getTodaysTotalTokens(metrics) {
-            if (metrics.length === 0) return 0;
-            return Math.floor(metrics.length * 150);
-        }
-
-        function updateTokenBudget(metrics) {
-            if (metrics.length === 0) {
-                document.getElementById("tokenUsed").textContent = "0";
-                document.getElementById("tokenPercent").textContent = "0%";
-                document.getElementById("tokenRemaining").textContent = "14,400";
-                return;
-            }
-
-            const tokensUsed = getTodaysTotalTokens(metrics);
-            const percent = Math.round((tokensUsed / GROQ_DAILY_LIMIT) * 100);
-            const remaining = GROQ_DAILY_LIMIT - tokensUsed;
-
-            document.getElementById("tokenUsed").textContent = tokensUsed.toLocaleString();
-            document.getElementById("tokenPercent").textContent = percent + "%";
-            document.getElementById("tokenRemaining").textContent = remaining.toLocaleString();
-            document.getElementById("progressFill").style.width = percent + "%";
-            document.getElementById("budgetTime").textContent = `Updated ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
-        }
-
-        function updateCharts(metrics) {
-            const last20 = getLastNRuns(metrics, 20);
-            const labels = last20.map(m => formatTime(m.timestamp));
-            const latencies = last20.map(() => Math.random() * 30 + 5);
-            const tokens = last20.map((m, i) => (i + 1) * 150);
-            const apiCalls = last20.map(() => Math.floor(Math.random() * 20) + 5);
-
-            if (latencyChart) latencyChart.destroy();
-            if (tokenChart) tokenChart.destroy();
-            if (apiChart) apiChart.destroy();
-
-            const commonOptions = {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { 
-                    legend: { display: false }, 
-                    tooltip: { 
-                        backgroundColor: 'rgba(0,0,0,0.8)', 
-                        padding: 8, 
-                        titleFont: { size: 12 }, 
-                        bodyFont: { size: 11 },
-                        borderColor: '#374151',
-                        borderWidth: 1
-                    } 
+        function makeChart(id, labels, data, color, label) {
+            return new Chart(document.getElementById(id), {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [{
+                        label,
+                        data,
+                        borderColor: color,
+                        backgroundColor: color + '14',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: true,
+                        pointRadius: 4,
+                        pointBackgroundColor: color,
+                        pointBorderColor: '#111827',
+                        pointBorderWidth: 1
+                    }]
                 },
-                scales: {
-                    y: { 
-                        beginAtZero: true, 
-                        grid: { color: '#1f2937' }, 
-                        ticks: { font: { size: 11 }, color: '#6b7280' } 
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: 'rgba(0,0,0,0.8)',
+                            padding: 8,
+                            borderColor: '#374151',
+                            borderWidth: 1
+                        }
                     },
-                    x: { 
-                        grid: { display: false }, 
-                        ticks: { font: { size: 11 }, color: '#6b7280' } 
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: '#1f2937' }, ticks: { color: '#6b7280', font: { size: 11 } } },
+                        x: { grid: { display: false }, ticks: { color: '#6b7280', font: { size: 11 } } }
                     }
                 }
-            };
-
-            new Chart(document.getElementById("latencyChart"), {
-                type: "line",
-                data: { 
-                    labels, 
-                    datasets: [{ 
-                        label: "Latency (s)", 
-                        data: latencies, 
-                        borderColor: '#10b981', 
-                        backgroundColor: 'rgba(16, 185, 129, 0.08)', 
-                        borderWidth: 2, 
-                        tension: 0.4, 
-                        fill: true, 
-                        pointRadius: 4, 
-                        pointBackgroundColor: '#10b981',
-                        pointBorderColor: '#111827',
-                        pointBorderWidth: 1
-                    }] 
-                },
-                options: commonOptions
             });
-            latencyChart = true;
-
-            new Chart(document.getElementById("tokenChart"), {
-                type: "line",
-                data: { 
-                    labels, 
-                    datasets: [{ 
-                        label: "Tokens", 
-                        data: tokens, 
-                        borderColor: '#f59e0b', 
-                        backgroundColor: 'rgba(245, 158, 11, 0.08)', 
-                        borderWidth: 2, 
-                        tension: 0.4, 
-                        fill: true, 
-                        pointRadius: 4, 
-                        pointBackgroundColor: '#f59e0b',
-                        pointBorderColor: '#111827',
-                        pointBorderWidth: 1
-                    }] 
-                },
-                options: commonOptions
-            });
-            tokenChart = true;
-
-            new Chart(document.getElementById("apiChart"), {
-                type: "line",
-                data: { 
-                    labels, 
-                    datasets: [{ 
-                        label: "API Calls", 
-                        data: apiCalls, 
-                        borderColor: '#3b82f6', 
-                        backgroundColor: 'rgba(59, 130, 246, 0.08)', 
-                        borderWidth: 2, 
-                        tension: 0.4, 
-                        fill: true, 
-                        pointRadius: 4, 
-                        pointBackgroundColor: '#3b82f6',
-                        pointBorderColor: '#111827',
-                        pointBorderWidth: 1
-                    }] 
-                },
-                options: commonOptions
-            });
-            apiChart = true;
-
-            document.getElementById("latencyTime").textContent = `Updated ${formatDate(last20[last20.length - 1].timestamp)}`;
-            document.getElementById("tokenTime").textContent = `Updated ${formatDate(last20[last20.length - 1].timestamp)}`;
-            document.getElementById("apiTime").textContent = `Updated ${formatDate(last20[last20.length - 1].timestamp)}`;
         }
 
-        function updateStatus(metrics) {
-            if (metrics.length === 0) {
-                document.getElementById("statusContainer").innerHTML = '<p style="color: #6b7280; font-size: 13px;">No data yet</p>';
-                return;
-            }
+        // ── PIPELINE 1: AGENT BUILDER DAILY ──────────────────────
+        let charts = {};
 
-            const lastRun = metrics[metrics.length - 1];
-            const successCount = metrics.filter(m => m.status === "success").length;
-            const successRate = Math.round((successCount / metrics.length) * 100);
+        function updateScout(metrics) {
+            if (!metrics.length) return;
+            const last20 = metrics.slice(-20);
+            const labels = last20.map(m => formatTime(m.timestamp));
+            const latencies = last20.map(() => Math.random() * 30 + 5);
+            const tokens = last20.map((_, i) => (i + 1) * 150);
+            const apiCalls = last20.map(() => Math.floor(Math.random() * 20) + 5);
 
-            const statusClass = lastRun.status === "success" ? "status-success" : "status-error";
-            const statusText = lastRun.status === "success" ? "✓ Operational" : "✗ Failed";
+            if (charts.latency) charts.latency.destroy();
+            if (charts.token) charts.token.destroy();
+            if (charts.api) charts.api.destroy();
 
-            document.getElementById("statusContainer").innerHTML = `
-                <div class="status-row">
-                    <label>Latest status</label>
-                    <span class="status-pill ${statusClass}">${statusText}</span>
-                </div>
-                <div class="status-row">
-                    <label>Success rate</label>
-                    <value>${successRate}%</value>
-                </div>
-                <div class="status-row">
-                    <label>Total runs</label>
-                    <value>${metrics.length}</value>
-                </div>
+            charts.latency = makeChart('latencyChart', labels, latencies, '#10b981', 'Latency (s)');
+            charts.token   = makeChart('tokenChart',   labels, tokens,    '#f59e0b', 'Tokens');
+            charts.api     = makeChart('apiChart',     labels, apiCalls,  '#3b82f6', 'API Calls');
+
+            const last = last20[last20.length - 1];
+            const updatedStr = 'Updated ' + formatDate(last.timestamp);
+            document.getElementById('latencyTime').textContent = updatedStr;
+            document.getElementById('tokenTime').textContent   = updatedStr;
+            document.getElementById('apiTime').textContent     = updatedStr;
+
+            const tokensUsed = Math.floor(metrics.length * 150);
+            const pct = Math.round((tokensUsed / GROQ_DAILY_LIMIT) * 100);
+            document.getElementById('tokenUsed').textContent     = tokensUsed.toLocaleString();
+            document.getElementById('tokenPercent').textContent  = pct + '%';
+            document.getElementById('tokenRemaining').textContent = (GROQ_DAILY_LIMIT - tokensUsed).toLocaleString();
+            document.getElementById('progressFill').style.width  = pct + '%';
+            document.getElementById('budgetTime').textContent    = 'Updated ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+            const successCount = metrics.filter(m => m.status === 'success').length;
+            const successRate  = Math.round((successCount / metrics.length) * 100);
+            const statusClass  = last.status === 'success' ? 'status-success' : 'status-error';
+            const statusText   = last.status === 'success' ? '&#10003; Operational' : '&#10007; Failed';
+
+            document.getElementById('statusContainer').innerHTML = `
+                <div class="status-row"><label>Latest status</label><span class="status-pill ${statusClass}">${statusText}</span></div>
+                <div class="status-row"><label>Success rate</label><value>${successRate}%</value></div>
+                <div class="status-row"><label>Total runs</label><value>${metrics.length}</value></div>
+            `;
+
+            const allErrors = [];
+            metrics.forEach(m => (m.errors || []).forEach(e => allErrors.push({ time: m.timestamp, error: e })));
+            const errorLog = document.getElementById('errorLog');
+            errorLog.innerHTML = allErrors.length === 0
+                ? '<p style="color:#10b981;font-size:12px;font-weight:500;">No errors detected</p>'
+                : allErrors.slice(-5).map(e => `<div class="error-item">${formatTime(e.time)}: ${e.error}</div>`).join('');
+            document.getElementById('errorTime').textContent = 'Updated ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+            document.getElementById('lastRunContainer').innerHTML = `
+                <div class="status-row"><label>Run ID</label><value style="font-family:monospace;font-size:12px;">${last.run_id}</value></div>
+                <div class="status-row"><label>Timestamp</label><value>${formatDate(last.timestamp)}</value></div>
+                <div class="status-row"><label>Articles generated</label><value>${last.article_count || 0}</value></div>
             `;
         }
 
-        function updateErrors(metrics) {
-            const allErrors = [];
-            metrics.forEach(m => {
-                if (m.errors && m.errors.length > 0) {
-                    m.errors.forEach(e => allErrors.push({ time: m.timestamp, error: e }));
-                }
-            });
-
-            const errorLog = document.getElementById("errorLog");
-            if (allErrors.length === 0) {
-                errorLog.innerHTML = '<p style="color: #10b981; font-size: 12px; font-weight: 500;">No errors detected</p>';
-            } else {
-                errorLog.innerHTML = allErrors.slice(-5).map(e => 
-                    `<div class="error-item">${formatTime(e.time)}: ${e.error}</div>`
-                ).join("");
-            }
-
-            document.getElementById("errorTime").textContent = `Updated ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
-        }
-
-        function updateLastRun(metrics) {
-            if (metrics.length === 0) {
-                document.getElementById("lastRunContainer").innerHTML = '<p style="color: #6b7280; font-size: 13px;">No runs yet</p>';
+        // ── PIPELINE 2: EMAIL TRIAGE ──────────────────────────────
+        function updateTriage(metrics) {
+            if (!metrics.length) {
+                document.getElementById('triageStatusContainer').innerHTML =
+                    '<p style="color:#6b7280;font-size:13px;">No data yet — run triage.py first</p>';
                 return;
             }
 
-            const lastRun = metrics[metrics.length - 1];
-            document.getElementById("lastRunContainer").innerHTML = `
-                <div class="status-row">
-                    <label>Run ID</label>
-                    <value style="font-family: monospace; font-size: 12px;">${lastRun.run_id}</value>
-                </div>
-                <div class="status-row">
-                    <label>Timestamp</label>
-                    <value>${formatDate(lastRun.timestamp)}</value>
-                </div>
-                <div class="status-row">
-                    <label>Articles generated</label>
-                    <value>${lastRun.article_count || 0}</value>
-                </div>
+            const last = metrics[metrics.length - 1];
+            const last20 = metrics.slice(-20);
+            const labels = last20.map(m => formatTime(m.timestamp));
+
+            // Last run breakdown
+            document.getElementById('triageUrgent').textContent  = last.urgent  || 0;
+            document.getElementById('triageLeads').textContent   = last.leads   || 0;
+            document.getElementById('triageRoutine').textContent = last.routine || 0;
+            document.getElementById('triageNoise').textContent   = last.noise   || 0;
+            document.getElementById('triageLastRunTime').textContent = 'Last run: ' + formatDate(last.timestamp);
+
+            // Charts
+            if (charts.triageVolume)  charts.triageVolume.destroy();
+            if (charts.triageLatency) charts.triageLatency.destroy();
+
+            charts.triageVolume  = makeChart('triageVolumeChart',  labels, last20.map(m => m.emails_processed || 0), '#3b82f6', 'Emails');
+            charts.triageLatency = makeChart('triageLatencyChart', labels, last20.map(m => m.latency_seconds  || 0), '#a855f7', 'Latency (s)');
+
+            document.getElementById('triageVolumeTime').textContent  = 'Updated ' + formatDate(last.timestamp);
+            document.getElementById('triageLatencyTime').textContent = 'Updated ' + formatDate(last.timestamp);
+
+            // Status
+            const successCount = metrics.filter(m => m.status === 'success').length;
+            const successRate  = Math.round((successCount / metrics.length) * 100);
+            const statusClass  = last.status === 'success' ? 'status-success' : 'status-error';
+            const statusText   = last.status === 'success' ? '&#10003; Operational' : '&#10007; Failed';
+
+            document.getElementById('triageStatusContainer').innerHTML = `
+                <div class="status-row"><label>Latest status</label><span class="status-pill ${statusClass}">${statusText}</span></div>
+                <div class="status-row"><label>Success rate</label><value>${successRate}%</value></div>
+                <div class="status-row"><label>Total runs</label><value>${metrics.length}</value></div>
+            `;
+
+            // Errors
+            const allErrors = [];
+            metrics.forEach(m => (m.errors || []).forEach(e => allErrors.push({ time: m.timestamp, error: e })));
+            document.getElementById('triageErrorLog').innerHTML = allErrors.length === 0
+                ? '<p style="color:#10b981;font-size:12px;font-weight:500;">No errors detected</p>'
+                : allErrors.slice(-5).map(e => `<div class="error-item">${formatTime(e.time)}: ${e.error}</div>`).join('');
+            document.getElementById('triageErrorTime').textContent = 'Updated ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+            // Last run
+            document.getElementById('triageLastRunContainer').innerHTML = `
+                <div class="status-row"><label>Run ID</label><value style="font-family:monospace;font-size:12px;">${last.run_id}</value></div>
+                <div class="status-row"><label>Timestamp</label><value>${formatDate(last.timestamp)}</value></div>
+                <div class="status-row"><label>Emails processed</label><value>${last.emails_processed || 0}</value></div>
+                <div class="status-row"><label>Leads found</label><value style="color:#f59e0b;">${last.leads || 0}</value></div>
             `;
         }
 
         async function refreshDashboard() {
-            const metrics = await fetchMetrics();
-            if (metrics.length > 0) {
-                updateCharts(metrics);
-                updateStatus(metrics);
-                updateErrors(metrics);
-                updateLastRun(metrics);
-                updateTokenBudget(metrics);
-            }
+            const [scoutMetrics, triageMetrics] = await Promise.all([
+                fetchJSON(METRICS_URL),
+                fetchJSON(TRIAGE_METRICS_URL)
+            ]);
+            if (scoutMetrics.length)  updateScout(scoutMetrics);
+            if (triageMetrics.length) updateTriage(triageMetrics);
         }
 
         refreshDashboard();
